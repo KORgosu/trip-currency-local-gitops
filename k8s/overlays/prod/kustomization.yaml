@@ -14,7 +14,7 @@ patches:
   patch: |-
     - op: replace
       path: /spec/template/spec/containers/0/image
-      value: korgosu/service-frontend:prod-56
+      value: korgosu/service-frontend:prod-57
     - op: replace
       path: /spec/template/spec/containers/0/imagePullPolicy
       value: Always
@@ -24,7 +24,7 @@ patches:
   patch: |-
     - op: replace
       path: /spec/template/spec/containers/0/image
-      value: korgosu/service-currency:prod-56
+      value: korgosu/service-currency:prod-57
     - op: replace
       path: /spec/template/spec/containers/0/imagePullPolicy
       value: Always
@@ -34,7 +34,7 @@ patches:
   patch: |-
     - op: replace
       path: /spec/template/spec/containers/0/image
-      value: korgosu/service-history:prod-56
+      value: korgosu/service-history:prod-57
     - op: replace
       path: /spec/template/spec/containers/0/imagePullPolicy
       value: Always
@@ -44,7 +44,7 @@ patches:
   patch: |-
     - op: replace
       path: /spec/template/spec/containers/0/image
-      value: korgosu/service-ranking:prod-56
+      value: korgosu/service-ranking:prod-57
     - op: replace
       path: /spec/template/spec/containers/0/imagePullPolicy
       value: Always
@@ -54,7 +54,7 @@ patches:
   patch: |-
     - op: replace
       path: /spec/jobTemplate/spec/template/spec/containers/0/image
-      value: korgosu/service-dataingestor:prod-56
+      value: korgosu/service-dataingestor:prod-57
     - op: replace
       path: /spec/jobTemplate/spec/template/spec/containers/0/imagePullPolicy
       value: Always
