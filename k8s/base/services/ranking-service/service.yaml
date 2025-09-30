@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: service-ranking
+spec:
+  selector:
+    app: service-ranking
+  ports:
+  - name: http
+    port: 8000
+    targetPort: 8000
+    nodePort: 30002
+  type: NodePort

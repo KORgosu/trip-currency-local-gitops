@@ -1,0 +1,42 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: trip-service-alb
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/healthcheck-path: /
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}]'
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /api/v1/currencies
+        pathType: Prefix
+        backend:
+          service:
+            name: service-currency
+            port:
+              number: 8000
+      - path: /api/v1/rankings
+        pathType: Prefix
+        backend:
+          service:
+            name: service-ranking
+            port:
+              number: 8000
+      - path: /api/v1/history
+        pathType: Prefix
+        backend:
+          service:
+            name: service-history
+            port:
+              number: 8000
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: service-frontend
+            port:
+              number: 80
