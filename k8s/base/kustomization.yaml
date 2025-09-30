@@ -6,8 +6,8 @@ resources:
 - configmap.yaml
 - secrets.yaml
 
-# MetalLB
-- metallb/ipaddresspool.yaml
+# MetalLB (managed separately - not included in GitOps)
+# - metallb/ipaddresspool.yaml
 
 # Ingress Controller (별도 설치 필요)
 # - ingress-controller/rbac.yaml
