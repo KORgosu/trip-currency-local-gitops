@@ -6,6 +6,7 @@ namespace: trip-service-dev
 resources:
 - ../../base
 - namespace.yaml
+- ingress.yaml
 
 patchesStrategicMerge:
 - configmap.yaml
