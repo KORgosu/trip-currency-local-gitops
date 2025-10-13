@@ -9,14 +9,13 @@ resources:
 - storageclass.yaml
 
 patches:
-# ECR 이미지로 변경
 - target:
     kind: Deployment
     name: service-frontend
   patch: |-
     - op: replace
       path: /spec/template/spec/containers/0/image
-      value: 123456789012.dkr.ecr.us-west-2.amazonaws.com/trip-service/frontend:latest
+      value: 716773066105.dkr.ecr.ap-northeast-2.amazonaws.com/service-frontend:latest
     - op: replace
       path: /spec/template/spec/containers/0/imagePullPolicy
       value: Always
@@ -27,7 +26,7 @@ patches:
   patch: |-
     - op: replace
       path: /spec/template/spec/containers/0/image
-      value: 123456789012.dkr.ecr.us-west-2.amazonaws.com/trip-service/currency:latest
+      value: 716773066105.dkr.ecr.ap-northeast-2.amazonaws.com/service-currency:latest
     - op: replace
       path: /spec/template/spec/containers/0/imagePullPolicy
       value: Always
@@ -38,7 +37,7 @@ patches:
   patch: |-
     - op: replace
       path: /spec/template/spec/containers/0/image
-      value: 123456789012.dkr.ecr.us-west-2.amazonaws.com/trip-service/history:latest
+      value: 716773066105.dkr.ecr.ap-northeast-2.amazonaws.com/service-history:latest
     - op: replace
       path: /spec/template/spec/containers/0/imagePullPolicy
       value: Always
@@ -49,7 +48,7 @@ patches:
   patch: |-
     - op: replace
       path: /spec/template/spec/containers/0/image
-      value: 123456789012.dkr.ecr.us-west-2.amazonaws.com/trip-service/ranking:latest
+      value: 716773066105.dkr.ecr.ap-northeast-2.amazonaws.com/service-ranking:latest
     - op: replace
       path: /spec/template/spec/containers/0/imagePullPolicy
       value: Always
@@ -60,12 +59,11 @@ patches:
   patch: |-
     - op: replace
       path: /spec/jobTemplate/spec/template/spec/containers/0/image
-      value: 123456789012.dkr.ecr.us-west-2.amazonaws.com/trip-service/dataingestor:latest
+      value: 716773066105.dkr.ecr.ap-northeast-2.amazonaws.com/service-dataingestor:latest
     - op: replace
       path: /spec/jobTemplate/spec/template/spec/containers/0/imagePullPolicy
       value: Always
 
-# AWS LoadBalancer 설정
 - target:
     kind: Service
     name: service-frontend
@@ -77,9 +75,8 @@ patches:
       path: /metadata/annotations
       value:
         service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+        service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
         service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
-
-# EBS 스토리지 클래스
 - target:
     kind: PersistentVolumeClaim
   patch: |-
@@ -87,7 +84,6 @@ patches:
       path: /spec/storageClassName
       value: gp2
 
-# EKS 환경 설정
 - target:
     kind: ConfigMap
     name: trip-service-config
@@ -100,9 +96,8 @@ patches:
       value: "aws"
     - op: add
       path: /data/REGION
-      value: "us-west-2"
+      value: "ap-northeast-2"
 
-# 프로덕션 리소스 제한 (EKS 최적화)
 - target:
     kind: Deployment
     name: service-frontend
