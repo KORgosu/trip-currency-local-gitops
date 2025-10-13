@@ -5,6 +5,7 @@ namespace: trip-service-prod
 
 resources:
 - ../../base
+- ingress.yaml
 
 patches:
 # 이미지 및 imagePullPolicy 패치
@@ -14,7 +15,7 @@ patches:
   patch: |-
     - op: replace
       path: /spec/template/spec/containers/0/image
-      value: korgosu/service-frontend:prod-60
+      value: korgosu/service-frontend:latest
     - op: replace
       path: /spec/template/spec/containers/0/imagePullPolicy
       value: Always
@@ -24,7 +25,7 @@ patches:
   patch: |-
     - op: replace
       path: /spec/template/spec/containers/0/image
-      value: korgosu/service-currency:prod-60
+      value: korgosu/service-currency:latest
     - op: replace
       path: /spec/template/spec/containers/0/imagePullPolicy
       value: Always
@@ -34,7 +35,7 @@ patches:
   patch: |-
     - op: replace
       path: /spec/template/spec/containers/0/image
-      value: korgosu/service-history:prod-60
+      value: korgosu/service-history:latest
     - op: replace
       path: /spec/template/spec/containers/0/imagePullPolicy
       value: Always
@@ -44,7 +45,7 @@ patches:
   patch: |-
     - op: replace
       path: /spec/template/spec/containers/0/image
-      value: korgosu/service-ranking:prod-60
+      value: korgosu/service-ranking:latest
     - op: replace
       path: /spec/template/spec/containers/0/imagePullPolicy
       value: Always
@@ -54,7 +55,7 @@ patches:
   patch: |-
     - op: replace
       path: /spec/jobTemplate/spec/template/spec/containers/0/image
-      value: korgosu/service-dataingestor:prod-60
+      value: korgosu/service-dataingestor:latest
     - op: replace
       path: /spec/jobTemplate/spec/template/spec/containers/0/imagePullPolicy
       value: Always
