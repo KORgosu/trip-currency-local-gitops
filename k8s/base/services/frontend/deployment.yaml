@@ -32,8 +32,8 @@ spec:
               key: api-base-url
         resources:
           requests:
-            memory: "128Mi"
+            memory: "32Mi"
             cpu: "50m"
           limits:
-            memory: "256Mi"
+            memory: "64Mi"
             cpu: "200m"
