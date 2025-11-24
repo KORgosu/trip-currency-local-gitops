@@ -129,10 +129,6 @@ trip-currency-local-gitops/
 │   │   ├── secrets.yaml               # 전역 Secrets
 │   │   ├── kustomization.yaml         # Base Kustomization
 │   │   │
-│   │   ├── ingress/                   # Ingress 규칙
-│   │   │   ├── trip-service-ingress.yaml
-│   │   │   └── kustomization.yaml
-│   │   │
 │   │   ├── ingress-controller/        # NGINX Ingress Controller
 │   │   │   ├── nginx-controller.yaml
 │   │   │   ├── rbac.yaml
@@ -356,8 +352,18 @@ trip-currency-local-gitops/
 
 ### 네트워킹
 
+#### Ingress
+- **구성 방식**: 각 overlay에서 환경별로 정의
+  - **Dev/Prod (Local)**: NGINX Ingress 사용
+  - **EKS**: AWS ALB Ingress Controller 사용
+- **Base에서 제거**: 환경별 차이가 크므로 overlay에서만 관리
+- **설정 위치**:
+  - `overlays/dev/ingress.yaml` - 개발 환경용 NGINX Ingress
+  - `overlays/prod/ingress.yaml` - 프로덕션 환경용 NGINX Ingress
+  - `overlays/eks/ingress.yaml` - EKS 환경용 ALB Ingress
+
 #### NGINX Ingress Controller
-- **용도**: 외부 트래픽 라우팅 및 로드밸런싱
+- **용도**: 외부 트래픽 라우팅 및 로드밸런싱 (로컬 환경)
 - **별도 설치 필요**: Base kustomization에서 주석 처리됨
 - **설치 방법**: Helm 또는 별도 매니페스트 적용
 
