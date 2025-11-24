@@ -13,8 +13,8 @@ resources:
 # - ingress-controller/rbac.yaml
 # - ingress-controller/nginx-controller.yaml
 
-# Ingress Rules
-- ingress/trip-service-ingress.yaml
+# Ingress Rules - 각 overlay에서 환경별로 정의
+# - ingress/trip-service-ingress.yaml  # 제거: overlay별로 별도 정의
 
 # Databases
 - mysql/
