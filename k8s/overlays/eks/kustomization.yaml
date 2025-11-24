@@ -77,12 +77,14 @@ patches:
         service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
         service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
         service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
-- target:
-    kind: PersistentVolumeClaim
-  patch: |-
-    - op: replace
-      path: /spec/storageClassName
-      value: gp2
+# 참고: StatefulSet의 volumeClaimTemplates로 생성되는 PVC는 이 패치의 영향을 받지 않음
+# StatefulSet (MySQL, MongoDB, Redis)는 base에서 storageClassName: gp3-encrypted로 설정됨
+# - target:
+#     kind: PersistentVolumeClaim
+#   patch: |-
+#     - op: replace
+#       path: /spec/storageClassName
+#       value: gp2
 
 - target:
     kind: ConfigMap

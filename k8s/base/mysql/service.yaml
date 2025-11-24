@@ -3,9 +3,10 @@ kind: Service
 metadata:
   name: service-mysql
 spec:
+  clusterIP: None  # Headless Service for StatefulSet
   selector:
     app: mysql
   ports:
   - port: 3306
     targetPort: 3306
-  type: ClusterIP
+    name: mysql

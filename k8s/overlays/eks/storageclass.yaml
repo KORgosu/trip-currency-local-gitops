@@ -9,28 +9,4 @@ parameters:
   fsType: ext4
 volumeBindingMode: WaitForFirstConsumer
 allowVolumeExpansion: true
----
-# Default StorageClass override for MySQL/MongoDB
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: mysql-pv-claim
-spec:
-  accessModes:
-    - ReadWriteOnce
-  storageClassName: gp3-encrypted
-  resources:
-    requests:
-      storage: 20Gi
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: mongodb-pv-claim
-spec:
-  accessModes:
-    - ReadWriteOnce
-  storageClassName: gp3-encrypted
-  resources:
-    requests:
-      storage: 20Gi
+# 참고: MySQL, MongoDB, Redis의 PVC는 StatefulSet의 volumeClaimTemplates로 자동 생성됨

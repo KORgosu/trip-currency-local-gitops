@@ -110,7 +110,7 @@
 ├─────────────────────────────────┤
 │  AWS ALB Ingress Controller     │
 │  AWS NLB (Frontend)             │
-│  AWS EBS Storage (gp2)          │
+│  AWS EBS Storage (gp3-encrypted)│
 │  AWS ECR 이미지                  │
 │  AWS ACM SSL/TLS 인증서          │
 │  도메인: 2025teamproject.store   │
@@ -143,21 +143,20 @@ trip-currency-local-gitops/
 │   │   │   └── kustomization.yaml
 │   │   │
 │   │   ├── mysql/                     # MySQL Database
-│   │   │   ├── deployment.yaml
-│   │   │   ├── service.yaml
+│   │   │   ├── statefulset.yaml       # StatefulSet (데이터 영구 저장)
+│   │   │   ├── service.yaml           # Headless Service
 │   │   │   ├── configmap.yaml
-│   │   │   ├── pvc.yaml
 │   │   │   └── kustomization.yaml
 │   │   │
 │   │   ├── mongodb/                   # MongoDB Database
-│   │   │   ├── deployment.yaml
-│   │   │   ├── service.yaml
+│   │   │   ├── statefulset.yaml       # StatefulSet (데이터 영구 저장)
+│   │   │   ├── service.yaml           # Headless Service
 │   │   │   ├── configmap.yaml
-│   │   │   ├── pvc.yaml
 │   │   │   └── kustomization.yaml
 │   │   │
 │   │   ├── redis/                     # Redis Cache
-│   │   │   ├── deployment.yaml
+│   │   │   ├── deployment.yaml        # Deployment (캐싱 전용)
+│   │   │   ├── statefulset.yaml       # 예비용 (필요시 사용)
 │   │   │   ├── service.yaml
 │   │   │   └── kustomization.yaml
 │   │   │
@@ -300,26 +299,39 @@ trip-currency-local-gitops/
 
 #### MySQL
 - **용도**: 환율 및 히스토리 데이터 저장
+- **구성**: StatefulSet (데이터 영구 저장)
 - **이미지**: `mysql:8.0`
 - **포트**: 3306
-- **스토리지**: 10Gi PVC (ReadWriteOnce)
+- **서비스**: Headless Service (`service-mysql`)
+- **스토리지**: 10Gi PVC (ReadWriteOnce, `volumeClaimTemplates`로 자동 생성)
+- **StorageClass**: `gp3-encrypted` (EKS), 기본값 (로컬)
 - **데이터베이스**: `currency_db`
 - **사용자**: `trip_user`
+- **특징**: Pod 이름이 `mysql-0`로 고정되어 안정적인 네트워크 식별자 제공
 
 #### MongoDB
 - **용도**: 랭킹 및 통계 데이터 저장
+- **구성**: StatefulSet (데이터 영구 저장)
 - **이미지**: `mongo:6.0`
 - **포트**: 27017
-- **스토리지**: 10Gi PVC (ReadWriteOnce)
-- **데이터베이스**: `ranking_db`
+- **서비스**: Headless Service (`service-mongodb`)
+- **스토리지**: 10Gi PVC (ReadWriteOnce, `volumeClaimTemplates`로 자동 생성)
+- **StorageClass**: `gp3-encrypted` (EKS), 기본값 (로컬)
+- **데이터베이스**: `currency_db`
+- **특징**: Pod 이름이 `mongodb-0`로 고정되어 안정적인 네트워크 식별자 제공
 
 #### Redis
 - **용도**: 캐싱 및 세션 관리
-- **이미지**: `redis:7-alpine`
+- **구성**: Deployment (캐싱 전용, 데이터 손실 허용)
+- **이미지**: `redis:7.0-alpine`
 - **포트**: 6379
+- **서비스**: ClusterIP Service (`service-redis`)
+- **스토리지**: 임시 스토리지 (`emptyDir`, 200Mi 제한)
 - **리소스**:
-  - Requests: 64Mi RAM, 50m CPU
-  - Limits: 128Mi RAM, 100m CPU
+  - Requests: 128Mi RAM, 100m CPU
+  - Limits: 256Mi RAM, 200m CPU
+- **설정**: AOF 활성화, LRU 메모리 정책 (100mb 제한)
+- **참고**: StatefulSet 버전도 제공 (데이터 영구 저장 필요 시 사용)
 
 ### 메시지 큐
 
@@ -369,7 +381,7 @@ trip-currency-local-gitops/
 | **Image Tag** | `dev-latest` | `staging-latest` | `prod-63` (Jenkins) | `latest` |
 | **Resources** | 최소 | 중간 | 높음 (512Mi) | 높음 (512Mi) |
 | **Ingress** | NGINX | NGINX | NGINX | AWS ALB |
-| **Storage** | local-path | local-path | local-path | AWS EBS (gp2) |
+| **Storage** | local-path | local-path | local-path | AWS EBS (gp3-encrypted) |
 | **LoadBalancer** | MetalLB | MetalLB | MetalLB | AWS NLB |
 | **도메인** | 로컬 | 로컬 | 로컬 | 2025teamproject.store |
 | **SSL/TLS** | ❌ | ❌ | ❌ | ✅ (ACM) |
@@ -470,7 +482,7 @@ patches:
 - **도메인**: `2025teamproject.store`
 - **SSL/TLS**: AWS Certificate Manager (ACM) 인증서 적용
 - **리전**: `ap-northeast-2` (서울)
-- **스토리지**: AWS EBS gp2 볼륨
+- **스토리지**: AWS EBS gp3 볼륨 (암호화, `gp3-encrypted` StorageClass)
 - **로드밸런서**: AWS NLB (Network Load Balancer) for frontend
 
 **주요 패치**:
@@ -485,13 +497,8 @@ patches:
         path: /spec/template/spec/containers/0/image
         value: 716773066105.dkr.ecr.ap-northeast-2.amazonaws.com/service-currency:latest
 
-  # PVC 스토리지 클래스 변경
-  - target:
-      kind: PersistentVolumeClaim
-    patch: |-
-      - op: replace
-        path: /spec/storageClassName
-        value: gp2
+  # 참고: StatefulSet의 volumeClaimTemplates는 base에서 storageClassName: gp3-encrypted로 설정됨
+  # PVC는 StatefulSet이 자동 생성하므로 별도 패치 불필요
 
   # 환경 변수 설정
   - target:
@@ -805,8 +812,10 @@ spec:
 # 1. 모든 Pod가 Running 상태인지 확인
 kubectl get pods -n trip-service-prod
 
-# 2. PVC가 EBS 볼륨에 바인딩되었는지 확인
+# 2. PVC가 EBS 볼륨에 바인딩되었는지 확인 (StatefulSet이 자동 생성)
 kubectl get pvc -n trip-service-prod
+# 예상 PVC: mysql-storage-mysql-0, mongodb-storage-mongodb-0
+# StorageClass 확인: kubectl get pvc -n trip-service-prod -o jsonpath='{.items[*].spec.storageClassName}'
 
 # 3. Ingress ALB 생성 확인
 kubectl get ingress -n trip-service-prod
@@ -948,16 +957,27 @@ metrics:
 
 #### Persistent Volume Claims
 
-| 리소스 | 스토리지 크기 | Access Mode |
-|--------|--------------|-------------|
-| MySQL | 10Gi | ReadWriteOnce |
-| MongoDB | 10Gi | ReadWriteOnce |
+| 리소스 | 스토리지 크기 | Access Mode | 생성 방식 |
+|--------|--------------|-------------|----------|
+| MySQL | 10Gi | ReadWriteOnce | StatefulSet `volumeClaimTemplates` 자동 생성 |
+| MongoDB | 10Gi | ReadWriteOnce | StatefulSet `volumeClaimTemplates` 자동 생성 |
+| Redis | 5Gi | ReadWriteOnce | StatefulSet `volumeClaimTemplates` (예비용, 현재는 Deployment 사용) |
 
 #### StorageClass
 
-- **로컬/개발**: `standard` (hostPath 또는 local-path-provisioner)
-- **EKS**: `gp3` (AWS EBS)
-- **프로덕션**: 고성능 SSD 기반 스토리지 권장
+- **로컬/개발**: 기본 StorageClass (hostPath 또는 local-path-provisioner)
+- **EKS**: `gp3-encrypted` (AWS EBS gp3, 암호화 활성화)
+  - StatefulSet의 `volumeClaimTemplates`에서 자동으로 `gp3-encrypted` 사용
+  - 암호화된 EBS 볼륨으로 데이터 보안 강화
+  - 볼륨 확장 가능 (`allowVolumeExpansion: true`)
+
+#### StatefulSet 스토리지 관리
+
+- **자동 PVC 생성**: StatefulSet이 각 Pod에 대해 고유한 PVC를 자동 생성
+  - MySQL: `mysql-storage-mysql-0`
+  - MongoDB: `mongodb-storage-mongodb-0`
+- **데이터 영구성**: Pod 재시작 시에도 데이터 유지
+- **안정적인 네트워크**: Pod 이름이 고정되어 안정적인 DNS 이름 제공
 
 ---
 
@@ -981,8 +1001,11 @@ kubectl describe pod <pod-name> -n trip-service-dev
 #### 2. 데이터베이스 연결 실패
 
 - Secrets가 올바르게 생성되었는지 확인
-- 데이터베이스 서비스가 Running 상태인지 확인
+- StatefulSet Pod가 Running 상태인지 확인 (`kubectl get statefulset -n <namespace>`)
+- Headless Service가 올바르게 설정되었는지 확인 (`kubectl get svc service-mysql service-mongodb`)
+- PVC가 바인딩되었는지 확인 (`kubectl get pvc -n <namespace>`)
 - 네트워크 정책이 통신을 차단하지 않는지 확인
+- Service 이름으로 접근 가능한지 확인 (Headless Service도 Service 이름으로 접근 가능)
 
 #### 3. Ingress 404 에러
 
